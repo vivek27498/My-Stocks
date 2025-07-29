@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import MarketSelector from './components/MarketSelector'
-import { stockData } from './data/stockData'
+import stockService from './services/stockService'
 import { Button, Typography, tokens } from './design-system'
 import './App.css'
 
@@ -10,15 +10,20 @@ function App() {
   const [stocks, setStocks] = useState([])
   const [loading, setLoading] = useState(false)
 
-  const handleMarketSelect = (market) => {
+  const handleMarketSelect = async (market) => {
     setSelectedMarket(market)
     setLoading(true)
     
-    // Simulate loading delay for better UX
-    setTimeout(() => {
-      setStocks(stockData[market])
+    try {
+      const stockData = await stockService.getTopStocks(market)
+      setStocks(stockData)
+    } catch (error) {
+      console.error('Error fetching stocks:', error)
+      // Fallback to mock data on error
+      setStocks(stockService.getMockData(market))
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   const handleBackToMarketSelector = () => {
